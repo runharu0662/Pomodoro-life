@@ -6,7 +6,10 @@ import Button from "./components/Button";
 import InputField from "./components/InputField";
 import beepSound from "./sounds/beep.mp3";
 
+// ✅ API_URL 環境変数
 const API_URL = import.meta.env.VITE_API_URL;
+
+console.log("API_URL:", API_URL); // デバッグ用
 
 const appStyle = css`
   display: flex;
@@ -44,6 +47,7 @@ const App = () => {
   const fetchCount = async () => {
     try {
       const res = await fetch(`${API_URL}/api/count`);
+      console.log("GET /api/count Status:", res.status); // デバッグ用
       const data = await res.json();
       setSessionCount(data.count);
     } catch (err) {
@@ -53,10 +57,12 @@ const App = () => {
 
   // ✅ 2. セッション記録（回数+1更新）
   const recordSession = async () => {
+    console.log("recordSession called"); // デバッグ用
     try {
-      await fetch(`${API_URL}/api/count`, {
+      const res = await fetch(`${API_URL}/api/count`, {
         method: "POST",
       });
+      console.log("POST /api/count Status:", res.status); // デバッグ用
       fetchCount(); // 更新後に最新回数取得
     } catch (err) {
       console.error("Error recording session:", err);
