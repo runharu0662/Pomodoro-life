@@ -1,49 +1,68 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
-	"time"
+
+	_ "github.com/lib/pq"
 )
 
-type TimerStatus struct {
-	Status    string    `json:"status"`
-	StartTime time.Time `json:"startTime,omitempty"`
-	Elapsed   string    `json:"elapsed,omitempty"`
-}
-
-var currentStatus = TimerStatus{Status: "stopped"}
+var db *sql.DB
 
 func main() {
-	http.HandleFunc("/api/timer/start", startTimer)
-	http.HandleFunc("/api/timer/stop", stopTimer)
-	http.HandleFunc("/api/timer/status", getStatus)
+	var err error
 
-	fmt.Println("Backend server is running on :8080")
-	http.ListenAndServe(":8080", nil)
+	// ✅ PostgreSQL接続設定
+	db, err = sql.Open("postgres", "host=localhost port=5432 user=youruser password=yourpass dbname=yourdb sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// ✅ APIルーティング（CORS対応込み）
+	http.HandleFunc("/api/count", cors(handleCount))
+
+	log.Println("Server started at :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func startTimer(w http.ResponseWriter, r *http.Request) {
-	if currentStatus.Status != "running" {
-		currentStatus.Status = "running"
-		currentStatus.StartTime = time.Now()
+// ✅ CORS Middleware
+func cors(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		h(w, r)
 	}
-	json.NewEncoder(w).Encode(currentStatus)
 }
 
-func stopTimer(w http.ResponseWriter, r *http.Request) {
-	if currentStatus.Status == "running" {
-		currentStatus.Status = "stopped"
-		currentStatus.Elapsed = time.Since(currentStatus.StartTime).String()
-	}
-	json.NewEncoder(w).Encode(currentStatus)
-}
+// ✅ /api/count ハンドラー
+func handleCount(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		var count int
+		err := db.QueryRow("SELECT count FROM pomodoro_count WHERE id = 1").Scan(&count)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]int{"count": count})
 
-func getStatus(w http.ResponseWriter, r *http.Request) {
-	if currentStatus.Status == "running" {
-		currentStatus.Elapsed = time.Since(currentStatus.StartTime).String()
+	case http.MethodPost:
+		_, err := db.Exec("UPDATE pomodoro_count SET count = count + 1 WHERE id = 1")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+
+	default:
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(currentStatus)
 }

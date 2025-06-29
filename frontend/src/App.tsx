@@ -23,6 +23,11 @@ const buttonContainerStyle = css`
   margin: 20px;
 `;
 
+const countStyle = css`
+  margin: 20px;
+  font-size: 24px;
+`;
+
 const App = () => {
   const [workMinutes, setWorkMinutes] = useState("25");
   const [breakMinutes, setBreakMinutes] = useState("5");
@@ -30,8 +35,38 @@ const App = () => {
   const [seconds, setSeconds] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
+  const [sessionCount, setSessionCount] = useState(0);
   const [play] = useSound(beepSound, { volume: 0.5 });
 
+  // ✅ 1. セッション回数取得
+  const fetchCount = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/count");
+      const data = await res.json();
+      setSessionCount(data.count);
+    } catch (err) {
+      console.error("Error fetching count:", err);
+    }
+  };
+
+  // ✅ 2. セッション記録（回数+1更新）
+  const recordSession = async () => {
+    try {
+      await fetch("http://localhost:8080/api/count", {
+        method: "POST",
+      });
+      fetchCount(); // 更新後に最新回数取得
+    } catch (err) {
+      console.error("Error recording session:", err);
+    }
+  };
+
+  // ✅ 3. 初回マウント時に回数取得
+  useEffect(() => {
+    fetchCount();
+  }, []);
+
+  // ✅ 4. タイマー処理
   useEffect(() => {
     let interval = null;
     if (isActive) {
@@ -45,6 +80,9 @@ const App = () => {
             } else {
               setMinutes(parseInt(breakMinutes));
               setIsBreak(true);
+
+              // ✅ 一巡完了時に回数記録
+              recordSession();
             }
             setSeconds(0);
           } else {
@@ -94,7 +132,11 @@ const App = () => {
         {seconds < 10 ? `0${seconds}` : seconds}
       </div>
       <div css={buttonContainerStyle}>
-        <Button onClick={toggleTimer} disabled={false} text={isActive ? "Pause" : "Start"} />
+        <Button
+          onClick={toggleTimer}
+          disabled={false}
+          text={isActive ? "Pause" : "Start"}
+        />
         <Button onClick={resetTimer} disabled={false} text="Reset" />
       </div>
       <InputField
@@ -107,6 +149,9 @@ const App = () => {
         value={breakMinutes}
         onChange={handleBreakMinutesChange}
       />
+
+      {/* ✅ 5. 完了回数表示 */}
+      <div css={countStyle}>Completed Sessions: {sessionCount}</div>
     </div>
   );
 };
