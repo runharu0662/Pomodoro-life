@@ -132,7 +132,7 @@ const App = () => {
 
   return (
     <div css={appStyle}>
-      <h1>Pomodoro Timer</h1>
+      <h1>Pomodoro Life</h1>
       <div css={timerStyle}>
         {minutes < 10 ? `0${minutes}` : minutes}:
         {seconds < 10 ? `0${seconds}` : seconds}
