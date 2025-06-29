@@ -47,6 +47,7 @@ func handleCount(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		mutex.Lock()
 		sessionCount++
+		log.Println("sessionCount incremented:", sessionCount) // ログで確認
 		mutex.Unlock()
 
 		w.WriteHeader(http.StatusNoContent)
