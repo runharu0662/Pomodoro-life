@@ -6,10 +6,8 @@ import Button from "./components/Button";
 import InputField from "./components/InputField";
 import beepSound from "./sounds/beep.mp3";
 
-// ✅ API_URL 環境変数
-const API_URL = import.meta.env.VITE_API_URL;
-
-console.log("API_URL:", API_URL); // デバッグ用
+// ✅ API_URL を直書き
+const API_URL = "http://100.112.16.126";
 
 const appStyle = css`
   display: flex;
