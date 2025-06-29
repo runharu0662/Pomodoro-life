@@ -1,26 +1,18 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
-
-	_ "github.com/lib/pq"
+	"sync"
 )
 
-var db *sql.DB
+var (
+	sessionCount int
+	mutex        sync.Mutex
+)
 
 func main() {
-	var err error
-
-	// ✅ PostgreSQL接続設定
-	db, err = sql.Open("postgres", "host=localhost port=5432 user=youruser password=yourpass dbname=yourdb sslmode=disable")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// ✅ APIルーティング（CORS対応込み）
 	http.HandleFunc("/api/count", cors(handleCount))
 
 	log.Println("Server started at :8080")
@@ -41,25 +33,22 @@ func cors(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// ✅ /api/count ハンドラー
+// ✅ /api/count handler
 func handleCount(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		var count int
-		err := db.QueryRow("SELECT count FROM pomodoro_count WHERE id = 1").Scan(&count)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		mutex.Lock()
+		count := sessionCount
+		mutex.Unlock()
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]int{"count": count})
 
 	case http.MethodPost:
-		_, err := db.Exec("UPDATE pomodoro_count SET count = count + 1 WHERE id = 1")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		mutex.Lock()
+		sessionCount++
+		mutex.Unlock()
+
 		w.WriteHeader(http.StatusNoContent)
 
 	default:
