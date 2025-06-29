@@ -1,0 +1,138 @@
+/* === 全体レイアウト === */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #ffb152e0, #f9bd88);
+    /* ピーチ→オレンジ寄り */
+    /* 暖色系 */
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+
+/* === タイマー表示 === */
+.TimerDisplay {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    background: conic-gradient(#4caf50 calc(var(--progress, 0%) * 1%),
+            #eee 0);
+}
+
+/* === ボタン === */
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 8px;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* === ボタンを中央に寄せる === */
+.timerbtn {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* === 入力欄をスタイリッシュに === */
+.TimeInput input {
+    padding: 8px 12px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    margin: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.2s;
+}
+
+.TimeInput input:focus {
+    border-color: #007bff;
+}
+
+.setup-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.startbtn {
+    margin-top: 36px;
+    display: flex;
+    justify-content: center;
+}
+
+.dot-ring {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    margin: 20px auto;
+}
+
+.dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 24px;
+    background-color: #ccc;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+    transform-origin: center bottom;
+    /* 円の中心を向くための起点 */
+    opacity: 0.4;
+}
+
+.dot.lit {
+    background-color: #52C7FF;
+    opacity: 1;
+}
+
+.time-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    color: white;
+}
+
+.success-counter {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #333;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
