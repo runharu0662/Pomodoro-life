@@ -2,48 +2,59 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"time"
+	"sync"
 )
 
-type TimerStatus struct {
-	Status    string    `json:"status"`
-	StartTime time.Time `json:"startTime,omitempty"`
-	Elapsed   string    `json:"elapsed,omitempty"`
+type DoneRequest struct {
+	Done bool `json:"done"`
 }
 
-var currentStatus = TimerStatus{Status: "stopped"}
+type CountResponse struct {
+	Count int `json:"count"`
+}
+
+var (
+	count int
+	mu    sync.Mutex
+)
+
+func doneHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req DoneRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid body", http.StatusBadRequest)
+		return
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	if req.Done {
+		count++
+	}
+
+	res := CountResponse{Count: count}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
+}
+
+func countHandler(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	res := CountResponse{Count: count}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
+}
 
 func main() {
-	http.HandleFunc("/api/timer/start", startTimer)
-	http.HandleFunc("/api/timer/stop", stopTimer)
-	http.HandleFunc("/api/timer/status", getStatus)
+	http.HandleFunc("/api/done", doneHandler)
+	http.HandleFunc("/api/count", countHandler)
 
-	fmt.Println("Backend server is running on :8080")
 	http.ListenAndServe(":8080", nil)
-}
-
-func startTimer(w http.ResponseWriter, r *http.Request) {
-	if currentStatus.Status != "running" {
-		currentStatus.Status = "running"
-		currentStatus.StartTime = time.Now()
-	}
-	json.NewEncoder(w).Encode(currentStatus)
-}
-
-func stopTimer(w http.ResponseWriter, r *http.Request) {
-	if currentStatus.Status == "running" {
-		currentStatus.Status = "stopped"
-		currentStatus.Elapsed = time.Since(currentStatus.StartTime).String()
-	}
-	json.NewEncoder(w).Encode(currentStatus)
-}
-
-func getStatus(w http.ResponseWriter, r *http.Request) {
-	if currentStatus.Status == "running" {
-		currentStatus.Elapsed = time.Since(currentStatus.StartTime).String()
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(currentStatus)
 }
