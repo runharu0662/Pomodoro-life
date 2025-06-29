@@ -113,10 +113,6 @@ function Timer(props) {
 
     return (
         <div>
-            <div className="success-counter">
-                成功回数: {props.successCount}
-            </div>
-
             <div className="dot-ring">
                 {Array.from({ length: totalDots }).map((_, i) => {
                     const angle = (360 / totalDots) * i

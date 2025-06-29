@@ -32,6 +32,9 @@ function App() {
   return (
     <div>
       <h1>Pomodoro life</h1>
+      <div className="success-counter">
+        成功回数: {successCount}
+      </div>
       <div className="setup-form">
         {!showTimer && (
           <>
