@@ -6,6 +6,8 @@ import Button from "./components/Button";
 import InputField from "./components/InputField";
 import beepSound from "./sounds/beep.mp3";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const appStyle = css`
   display: flex;
   flex-direction: column;
@@ -41,7 +43,7 @@ const App = () => {
   // ✅ 1. セッション回数取得
   const fetchCount = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/count");
+      const res = await fetch(`${API_URL}/api/count`);
       const data = await res.json();
       setSessionCount(data.count);
     } catch (err) {
@@ -52,7 +54,7 @@ const App = () => {
   // ✅ 2. セッション記録（回数+1更新）
   const recordSession = async () => {
     try {
-      await fetch("http://localhost:8080/api/count", {
+      await fetch(`${API_URL}/api/count`, {
         method: "POST",
       });
       fetchCount(); // 更新後に最新回数取得
